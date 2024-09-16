@@ -41,6 +41,7 @@ extensions = [
     "manifest_revisions_table",
     "sphinxcontrib.mscgen",
     "zephyr.html_redirects",
+    "warnings_filter",
     "zephyr.kconfig",
     "zephyr.external_content",
     "zephyr.doxyrunner",
@@ -159,6 +160,10 @@ ncs_include_mapping = {
 # Options for html_redirect ----------------------------------------------------
 
 html_redirect_pages = redirects.NRF
+
+# -- Options for warnings_filter -----------------------------------------------
+
+warnings_filter_config = str(NRF_BASE / "doc" / "nrf" / "known-warnings.txt")
 
 # Options for zephyr.link-roles ------------------------------------------------
 
