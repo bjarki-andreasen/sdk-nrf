@@ -41,7 +41,6 @@ endif
 
 config DFU_TARGET_STREAM
 	bool "Generic DFU stream target"
-	depends on STREAM_FLASH_ERASE
 	depends on STREAM_FLASH
 
 config DFU_TARGET_MCUBOOT_SAVE_PROGRESS

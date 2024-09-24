@@ -174,6 +174,35 @@ int dfu_target_mcuboot_write(const void *const buf, size_t len)
 	return dfu_target_stream_write(buf, len);
 }
 
+
+#define _DO_ERROR	0
+#define _DO_FLATTTEN 1
+#define _DO_ERASE	2
+
+/**
+ * Check what way of target done should be used.
+ */
+static int _chose_done_way(void)
+{
+#if IS_ENABLED(CONFIG_FLASH_HAS_EXPLICIT_ERASE)
+#if IS_ENABLED(CONFIG_FLASH_HAS_NO_EXPLICIT_ERASE)
+	const struct flash_parameters *fparams = flash_get_parameters(secondary_dev[cur_sec_img]);
+
+	/* Stream flash does not rely on erase, it does it when device needs it */
+	if (!(flash_params_get_erase_cap(fparams) & FLASH_ERASE_C_EXPLICIT)) {
+		return _DO_FLATTEN;
+	}
+#endif
+	
+	return _DO_ERASE;		
+#elif IS_ENABLED(CONFIG_FLASH_HAS_NO_EXPLICIT_ERASE)
+	return _DO_FLATTEN;
+#else
+	#error "Missconfiguration: Can not assign proper 'done way'. "
+#endif
+}
+
+
 int dfu_target_mcuboot_done(bool successful)
 {
 	int err = 0;
@@ -187,11 +216,28 @@ int dfu_target_mcuboot_done(bool successful)
 	if (successful) {
 		stream_buf_bytes = 0;
 
-		err = stream_flash_erase_page(dfu_target_stream_get_stream(),
-					secondary_last_address[curr_sec_img]);
-		if (err != 0) {
-			LOG_ERR("Unable to delete last page: %d", err);
-			return err;
+		int way = _chose_done_way();
+
+		if (way == _DO_ERASE) {
+#ifdef CONFIG_STREAM_FLASH_ERASE
+			err = stream_flash_erase_page(dfu_target_stream_get_stream(),
+						secondary_last_address[curr_sec_img]);
+			if (err != 0) {
+				LOG_ERR("Unable to delete last page: %d", err);
+				return err;
+			}
+#endif
+		} else {
+			/* instead of the erase of the trailer image page, clear the trailer status chunk */
+			ssize_t status_offset = boot_get_trailer_status_offset(secondary_size[cur_sec_img]);
+			size_t offset;
+			err = dfu_target_stream_offset_get(&offset);
+
+			if (err == 0) && (offset < secondary_size[cur_sec_img])
+			{
+			err = flash_flatten(secondary_dev[cur_sec_img], status_offset,
+							   secondary_size[cur_sec_img] - status_offset);
+			}
 		}
 	} else {
 		LOG_INF("MCUBoot image upgrade aborted.");

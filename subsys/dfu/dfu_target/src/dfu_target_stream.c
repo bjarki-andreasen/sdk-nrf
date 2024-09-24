@@ -219,7 +219,7 @@ int dfu_target_stream_done(bool successful)
 
 int dfu_target_stream_reset(void)
 {
-	int err;
+	int err = 0;
 
 	stream.buf_bytes = 0;
 	stream.bytes_written = 0;
@@ -237,10 +237,12 @@ int dfu_target_stream_reset(void)
 		return 0;
 	}
 
+#ifdef CONFIG_STREAM_FLASH_ERASE
 	/* Erase just the first page. Stream write will take care of erasing remaining pages
 	 * on a next buffered_write round
 	 */
 	err = stream_flash_erase_page(&stream, stream.offset);
+#endif
 
 	current_id = NULL;
 
