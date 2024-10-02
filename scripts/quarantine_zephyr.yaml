@@ -174,7 +174,11 @@
     - sample.net.mqtt.nrf70.tls
   comment: "To report @chaitanya and put ticket # here"
 
-
+- scenarios:
+    - storage.flash_map
+  platforms:
+    - nrf9160dk/nrf9160/ns
+  comment: "https://nordicsemi.atlassian.net/browse/NCSDK-29462"
 
 # ---------------------------------   Won't fix section -----------------------------------
 
@@ -283,6 +287,7 @@
     - libraries.libc.common.picolibc
     - libraries.libc.common.picolibc.module
     - libraries.libc.common.picolibc.notls
+    - libraries.encoding.json
     - libraries.net_buf.buf
     - libraries.ring_buffer
     - libraries.hash_map.cxx.djb2
