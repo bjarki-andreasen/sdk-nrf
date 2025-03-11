@@ -1,0 +1,38 @@
+# Copyright (c) 2025 Nordic Semiconductor ASA
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+
+config NRF_TRACE
+	bool "Trace functions called"
+	select INSTRUMENTATION
+	depends on DEBUG_OPTIMIZATIONS
+
+if NRF_TRACE
+
+config NRF_TRACE_MAX_CALLS
+	int "Maximum number of calls which can be recorded"
+	default 1024
+
+choice NRF_TRACE_BACKEND
+	prompt "Backend to use for nRF trace"
+	default NRF_TRACE_BACKEND_LOG if LOG
+	default NRF_TRACE_BACKEND_CONSOLE
+
+config NRF_TRACE_BACKEND_LOG
+	bool "Use console as nRF trace backend"
+	depends on CONSOLE
+	help
+	  Dumps recorded calls as list of hex addresses to console
+
+config NRF_TRACE_BACKEND_CONSOLE
+	bool "Use console as nRF trace backend"
+	depends on CONSOLE
+	help
+	  Dumps recorded calls as list of hex addresses to console
+
+endchoice # NRF_TRACE_BACKEND
+
+module = NRF_TRACE
+module-str = modem_modules
+source "subsys/logging/Kconfig.template.log_config"
+
+endif # NRF_TRACE
